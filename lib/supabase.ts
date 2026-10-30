@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+type CookieToSet = { name: string; value: string; options?: { path?: string; domain?: string; maxAge?: number; expires?: Date; httpOnly?: boolean; secure?: boolean; sameSite?: boolean | 'lax' | 'strict' | 'none' } };
 export async function supabase() {
   const store = await cookies();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,7 +9,7 @@ export async function supabase() {
   return createServerClient(url, key, {
     cookies: {
       getAll() { return store.getAll(); },
-      setAll(items) { try { items.forEach(({ name, value, options }) => store.set(name, value, options)); } catch { /* Server Component: refresh middleware handles cookie updates */ } }
+      setAll(items: CookieToSet[]) { try { items.forEach(({ name, value, options }) => store.set(name, value, options)); } catch { /* Server Component: refresh middleware handles cookie updates */ } }
     }
   });
 }
