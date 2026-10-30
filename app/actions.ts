@@ -45,3 +45,38 @@ export async function registerAccess(form: FormData) {
   if (error) redirect('/acessos?erro=salvar');
   redirect('/acessos');
 }
+
+export async function createVehicle(form: FormData) {
+  const { db, user } = await current();
+  const plate = String(form.get('plate') || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const model = String(form.get('model') || '').trim().slice(0,100);
+  const propertyId = String(form.get('property_id') || '');
+  if (!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(plate) || !model) redirect('/veiculos?erro=dados');
+  if (propertyId) {
+    const { data } = await db.from('properties').select('id').eq('id',propertyId).single();
+    if (!data) redirect('/veiculos?erro=imovel');
+  }
+  const { error } = await db.from('vehicles').insert({ owner_id:user.id, plate, model, property_id:propertyId || null });
+  if (error) redirect('/veiculos?erro=salvar');
+  redirect('/veiculos');
+}
+export async function createPackage(form: FormData) {
+  const { db, user } = await current();
+  const description = String(form.get('description') || '').trim().slice(0,180);
+  const recipient = String(form.get('recipient') || '').trim().slice(0,120);
+  const propertyId = String(form.get('property_id') || '');
+  if (!description || !recipient || !propertyId) redirect('/encomendas?erro=dados');
+  const { data } = await db.from('properties').select('id').eq('id',propertyId).single();
+  if (!data) redirect('/encomendas?erro=imovel');
+  const { error } = await db.from('packages').insert({ owner_id:user.id, property_id:propertyId, description, recipient });
+  if (error) redirect('/encomendas?erro=salvar');
+  redirect('/encomendas');
+}
+export async function deliverPackage(form: FormData) {
+  const { db } = await current();
+  const id = String(form.get('id') || '');
+  if (!/^[a-f0-9-]{36}$/i.test(id)) redirect('/encomendas?erro=dados');
+  const { error } = await db.from('packages').update({ status:'entregue', delivered_at:new Date().toISOString() }).eq('id',id).eq('status','recebida');
+  if (error) redirect('/encomendas?erro=salvar');
+  redirect('/encomendas');
+}
