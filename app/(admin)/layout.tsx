@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { signOut } from '@/app/actions';
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    redirect('/configuracao');
+  }
   const db = await supabase();
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect('/entrar');

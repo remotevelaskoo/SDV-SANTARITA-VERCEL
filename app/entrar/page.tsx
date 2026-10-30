@@ -1,5 +1,7 @@
 import { signIn, signUp } from '@/app/actions';
+import { redirect } from 'next/navigation';
 export default async function Login({ searchParams }: { searchParams: Promise<{ erro?: string; aviso?: string }> }) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) redirect('/configuracao');
   const params = await searchParams;
   return <main className="auth panel"><div className="brand">SDV <span>ACCESS</span></div><p className="muted">Santa Rita · Acesso administrativo</p>
   {params.erro && <div className="notice">Não foi possível concluir a operação. Verifique seus dados.</div>}
